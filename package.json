@@ -15,8 +15,9 @@
     "sass": "^1.26.10"
   },
   "dependencies": {
-    "core-js": "^3.6.5",
+    "core-js": "^3.19.1",
     "fractional": "^1.0.0",
-    "regenerator-runtime": "^0.13.7"
+    "node-sass": "^6.0.1",
+    "regenerator-runtime": "^0.13.9"
   }
 }
