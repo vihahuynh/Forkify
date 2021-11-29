@@ -469,6 +469,8 @@ var _searchView = require("./view/searchView");
 var _searchViewDefault = parcelHelpers.interopDefault(_searchView);
 var _resultsView = require("./view/resultsView");
 var _resultsViewDefault = parcelHelpers.interopDefault(_resultsView);
+var _paginationView = require("./view/paginationView");
+var _paginationViewDefault = parcelHelpers.interopDefault(_paginationView);
 // https://forkify-api.herokuapp.com/v2
 ///////////////////////////////////////
 const controlRecipes = async ()=>{
@@ -491,18 +493,24 @@ const controlSearch = async ()=>{
         const query = _searchViewDefault.default.getQuery();
         if (!query) return;
         await _model.loadSearchResults(query);
-        _resultsViewDefault.default.render(_model.getSearchResultsPage(1));
+        _resultsViewDefault.default.render(_model.getSearchResultsPage());
+        _paginationViewDefault.default.render(_model.state.search);
     } catch (err) {
-        console.log(err);
+        console.error(err);
     }
+};
+const controlPagination = (goToPage)=>{
+    _resultsViewDefault.default.render(_model.getSearchResultsPage(goToPage));
+    _paginationViewDefault.default.render(_model.state.search);
 };
 const init = ()=>{
     _recipeViewDefault.default.addHandlerRender(controlRecipes);
     _searchViewDefault.default.addHandlerSearch(controlSearch);
+    _paginationViewDefault.default.addHandlerClick(controlPagination);
 };
 init();
 
-},{"core-js/stable":"95FYz","regenerator-runtime/runtime":"1EBPE","./model":"1pVJj","./view/recipeView":"qcgKQ","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV","./view/searchView":"1ShPd","./view/resultsView":"1KAoX"}],"95FYz":[function(require,module,exports) {
+},{"core-js/stable":"95FYz","regenerator-runtime/runtime":"1EBPE","./model":"1pVJj","./view/recipeView":"qcgKQ","./view/searchView":"1ShPd","./view/resultsView":"1KAoX","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV","./view/paginationView":"9Ia8B"}],"95FYz":[function(require,module,exports) {
 require('../modules/es.symbol');
 require('../modules/es.symbol.description');
 require('../modules/es.symbol.async-iterator');
@@ -13598,17 +13606,32 @@ const loadSearchResults = async (query)=>{
                 image: rec.image_url
             };
         });
+        state.search.page = 1;
     } catch (err) {
         throw err;
     }
 };
 const getSearchResultsPage = (page = state.search.page)=>{
+    state.search.page = page;
     const start = (page - 1) * 10;
     const end = page * 10;
     return state.search.results.slice(start, end);
 };
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV","./config":"6V52N","./helpers":"9RX9R"}],"ciiiV":[function(require,module,exports) {
+},{"./config":"6V52N","./helpers":"9RX9R","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV"}],"6V52N":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "API_URL", ()=>API_URL
+);
+parcelHelpers.export(exports, "TIMEOUT_SEC", ()=>TIMEOUT_SEC
+);
+parcelHelpers.export(exports, "RES_PER_PAGE", ()=>RES_PER_PAGE
+);
+const API_URL = 'https://forkify-api.herokuapp.com/api/v2/recipes';
+const TIMEOUT_SEC = 10;
+const RES_PER_PAGE = 10;
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV"}],"ciiiV":[function(require,module,exports) {
 exports.interopDefault = function(a) {
     return a && a.__esModule ? a : {
         default: a
@@ -13638,20 +13661,7 @@ exports.export = function(dest, destName, get) {
     });
 };
 
-},{}],"6V52N":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "API_URL", ()=>API_URL
-);
-parcelHelpers.export(exports, "TIMEOUT_SEC", ()=>TIMEOUT_SEC
-);
-parcelHelpers.export(exports, "RES_PER_PAGE", ()=>RES_PER_PAGE
-);
-const API_URL = 'https://forkify-api.herokuapp.com/api/v2/recipes';
-const TIMEOUT_SEC = 10;
-const RES_PER_PAGE = 10;
-
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV"}],"9RX9R":[function(require,module,exports) {
+},{}],"9RX9R":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "getJSON", ()=>getJSON
@@ -13778,7 +13788,7 @@ class RecipeView extends _viewDefault.default {
 }
 exports.default = new RecipeView();
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV","url:../../img/icons.svg":"5jwFy","fractional":"7ggqM","./View":"9kPNj"}],"5jwFy":[function(require,module,exports) {
+},{"url:../../img/icons.svg":"5jwFy","fractional":"7ggqM","./View":"9kPNj","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV"}],"5jwFy":[function(require,module,exports) {
 module.exports = require('./helpers/bundle-url').getBundleURL('71ti3') + "icons.e7078503.svg" + "?" + Date.now();
 
 },{"./helpers/bundle-url":"chiK4"}],"chiK4":[function(require,module,exports) {
@@ -14187,6 +14197,65 @@ class ResultsView extends _viewDefault.default {
 }
 exports.default = new ResultsView();
 
-},{"./View":"9kPNj","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV"}]},["kS06O","lA0Es"], "lA0Es", "parcelRequire3a11")
+},{"./View":"9kPNj","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV"}],"9Ia8B":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _iconsSvg = require("url:../../img/icons.svg");
+var _iconsSvgDefault = parcelHelpers.interopDefault(_iconsSvg);
+var _view = require("./View");
+var _viewDefault = parcelHelpers.interopDefault(_view);
+class PaginationView extends _viewDefault.default {
+    _parentElement = document.querySelector('.pagination');
+    addHandlerClick(handler) {
+        this._parentElement.addEventListener('click', (e)=>{
+            e.preventDefault();
+            const btn = e.target.closest('.btn--inline');
+            if (!btn) return;
+            const goToPage = +btn.dataset.goto;
+            handler(goToPage);
+        });
+    }
+    _generateMarkup() {
+        const curPage = this._data.page;
+        const numPages = Math.ceil(this._data.results.length / this._data.resultsPerPage);
+        // page 1, and other pages
+        if (curPage === 1 && numPages > 1) return `
+        <button data-goto="${curPage + 1}" class="btn--inline pagination__btn--next">
+            <span>Page ${curPage + 1}</span>
+            <svg class="search__icon">
+              <use href="${_iconsSvgDefault.default}#icon-arrow-right"></use>
+            </svg>
+        </button>`;
+        // last page
+        if (curPage === numPages && numPages > 1) return `
+        <button data-goto="${curPage - 1}" class="btn--inline pagination__btn--prev">
+            <svg class="search__icon">
+              <use href="${_iconsSvgDefault.default}#icon-arrow-left"></use>
+            </svg>
+            <span>Page ${curPage - 1}</span>
+        </button>`;
+        // orthers
+        if (curPage < numPages) return `
+        <button data-goto="${curPage - 1}"
+          class="btn--inline pagination__btn--prev">
+            <svg class="search__icon">
+            <use href="${_iconsSvgDefault.default}#icon-arrow-left"></use>
+            </svg>
+            <span>Page ${curPage - 1}</span>
+        </button>
+        <button data-goto="${curPage + 1}" class="btn--inline pagination__btn--next">
+            <span>Page ${curPage + 1}</span>
+            <svg class="search__icon">
+              <use href="${_iconsSvgDefault.default}#icon-arrow-right"></use>
+            </svg>
+        </button>
+        `;
+        // page 1, NO other pages
+        return '';
+    }
+}
+exports.default = new PaginationView();
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV","url:../../img/icons.svg":"5jwFy","./View":"9kPNj"}]},["kS06O","lA0Es"], "lA0Es", "parcelRequire3a11")
 
 //# sourceMappingURL=index.05cf099e.js.map

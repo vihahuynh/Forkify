@@ -45,12 +45,14 @@ export const loadSearchResults = async query => {
         image: rec.image_url,
       };
     });
+    state.search.page = 1;
   } catch (err) {
     throw err;
   }
 };
 
 export const getSearchResultsPage = (page = state.search.page) => {
+  state.search.page = page;
   const start = (page - 1) * 10;
   const end = page * 10;
   return state.search.results.slice(start, end);
