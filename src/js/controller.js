@@ -9,10 +9,6 @@ import resultsView from './view/resultsView';
 
 ///////////////////////////////////////
 
-if (module.hot) {
-  module.hot.accept();
-}
-
 const controlRecipes = async () => {
   try {
     const id = window.location.hash.slice(1);
@@ -37,7 +33,7 @@ const controlSearch = async () => {
     if (!query) return;
 
     await model.loadSearchResults(query);
-    resultsView.render(model.state.search.results);
+    resultsView.render(model.getSearchResultsPage(1));
   } catch (err) {
     console.log(err);
   }
