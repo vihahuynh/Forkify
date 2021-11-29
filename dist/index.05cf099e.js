@@ -465,7 +465,8 @@ var _runtime = require("regenerator-runtime/runtime");
 var _model = require("./model");
 var _recipeView = require("./view/recipeView");
 var _recipeViewDefault = parcelHelpers.interopDefault(_recipeView);
-const recipeContainer = document.querySelector('.recipe');
+var _searchView = require("./view/searchView");
+var _searchViewDefault = parcelHelpers.interopDefault(_searchView);
 // https://forkify-api.herokuapp.com/v2
 ///////////////////////////////////////
 const controlRecipes = async ()=>{
@@ -482,12 +483,23 @@ const controlRecipes = async ()=>{
         _recipeViewDefault.default.renderError();
     }
 };
+const controlSearch = async ()=>{
+    try {
+        const query = _searchViewDefault.default.getQuery();
+        if (!query) return;
+        await _model.loadSearchResults(query);
+        console.log(_model.state.search.results);
+    } catch (err) {
+        console.log(err);
+    }
+};
 const init = ()=>{
-    _recipeViewDefault.default.addHandleRender(controlRecipes);
+    _recipeViewDefault.default.addHandlerRender(controlRecipes);
+    _searchViewDefault.default.addHandlerSearch(controlSearch);
 };
 init();
 
-},{"core-js/stable":"95FYz","regenerator-runtime/runtime":"1EBPE","./model":"1pVJj","./view/recipeView":"qcgKQ","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV"}],"95FYz":[function(require,module,exports) {
+},{"core-js/stable":"95FYz","regenerator-runtime/runtime":"1EBPE","./model":"1pVJj","./view/recipeView":"qcgKQ","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV","./view/searchView":"1ShPd"}],"95FYz":[function(require,module,exports) {
 require('../modules/es.symbol');
 require('../modules/es.symbol.description');
 require('../modules/es.symbol.async-iterator');
@@ -13537,10 +13549,16 @@ parcelHelpers.export(exports, "state", ()=>state
 );
 parcelHelpers.export(exports, "loadRecipe", ()=>loadRecipe
 );
+parcelHelpers.export(exports, "loadSearchResults", ()=>loadSearchResults
+);
 var _config = require("./config");
 var _helpers = require("./helpers");
 const state = {
     recipe: {
+    },
+    search: {
+        query: '',
+        results: []
     }
 };
 const loadRecipe = async (id)=>{
@@ -13559,6 +13577,23 @@ const loadRecipe = async (id)=>{
         };
     } catch (err) {
         console.error(err + '✔');
+    }
+};
+const loadSearchResults = async (query)=>{
+    try {
+        state.search.query = query;
+        const data = await _helpers.getJSON(`${_config.API_URL}?search=${query}`);
+        // console.log('data: ', data);
+        state.search.results = data.data.recipes.map((rec)=>{
+            return {
+                id: rec.id,
+                title: rec.title,
+                publisher: rec.publisher,
+                image: rec.image_url
+            };
+        });
+    } catch (err) {
+        throw err;
     }
 };
 
@@ -13687,7 +13722,7 @@ class RecipeView {
      #clear() {
         this.#parentElement.innerHTML = '';
     }
-    addHandleRender(handler) {
+    addHandlerRender(handler) {
         [
             'hashChange',
             'load'
@@ -14073,6 +14108,29 @@ Fraction.primeFactors = function(n) {
 };
 module.exports.Fraction = Fraction;
 
-},{}]},["kS06O","lA0Es"], "lA0Es", "parcelRequire3a11")
+},{}],"1ShPd":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+class SearchView {
+    #parentElement = document.querySelector('.search');
+    #inputElement = document.querySelector('.search__field');
+    getQuery() {
+        const query = this.#inputElement.value;
+        this.#clear();
+        return query;
+    }
+     #clear() {
+        this.#inputElement.value = '';
+    }
+    addHandlerSearch(handler) {
+        this.#parentElement.addEventListener('submit', (e)=>{
+            e.preventDefault();
+            handler();
+        });
+    }
+}
+exports.default = new SearchView();
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV"}]},["kS06O","lA0Es"], "lA0Es", "parcelRequire3a11")
 
 //# sourceMappingURL=index.05cf099e.js.map
