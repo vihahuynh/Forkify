@@ -518,7 +518,11 @@ const controlUpdateBookMark = ()=>{
     _recipeViewDefault.default.update(_model.state.recipe);
     _bookmarksViewDefault.default.render(_model.state.bookmarks);
 };
+const controlBookmarks = ()=>{
+    _bookmarksViewDefault.default.render(_model.state.bookmarks);
+};
 const init = ()=>{
+    _bookmarksViewDefault.default.addHandlerRender(controlBookmarks);
     _recipeViewDefault.default.addHandlerRender(controlRecipes);
     _recipeViewDefault.default.addHandlerUpdateServings(controlUpdateServings);
     _recipeViewDefault.default.addHandlerUpdateBookMark(controlUpdateBookMark);
@@ -13652,15 +13656,25 @@ const updateServings = (newServings)=>{
     );
     state.recipe.servings = newServings;
 };
+const persistBookmark = ()=>{
+    localStorage.setItem('bookmarks', JSON.stringify(state.bookmarks));
+};
 const addBookMark = (recipe)=>{
     state.bookmarks.push(recipe);
     if (recipe.id === state.recipe.id) state.recipe.bookmarked = true;
+    persistBookmark();
 };
 const deleteBookMark = (id)=>{
     state.bookmarks = state.bookmarks.filter((bookmark)=>bookmark.id !== id
     );
     state.recipe.bookmarked = false;
+    persistBookmark();
 };
+const init = ()=>{
+    const storage = localStorage.getItem('bookmarks');
+    if (storage) state.bookmarks = JSON.parse(storage);
+};
+init();
 
 },{"./config":"6V52N","./helpers":"9RX9R","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV"}],"6V52N":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
