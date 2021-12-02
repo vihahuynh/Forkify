@@ -3,7 +3,7 @@ import icons from 'url:../../img/icons.svg';
 class View {
   _data;
 
-  render(data) {
+  render(data, render = true) {
     if (!data || (Array.isArray(data) && data.length === 0)) {
       this.renderError();
       return;
@@ -11,6 +11,9 @@ class View {
 
     this._data = data;
     const markup = this._generateMarkup();
+
+    if (!render) return markup;
+
     this._clear();
     this._parentElement.insertAdjacentHTML('afterbegin', markup);
   }
