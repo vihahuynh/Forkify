@@ -7,6 +7,15 @@ class RecipeView extends View {
   _errorMessage = 'No recipes found for your query. Please try again!';
   _message = '';
 
+  addHandlerUpdateServings = handler => {
+    this._parentElement.addEventListener('click', e => {
+      const btn = e.target.closest('.btn--update-servings');
+      if (!btn) return;
+      const updateTo = +btn.dataset.updateTo;
+      if (updateTo > 0) handler(updateTo);
+    });
+  };
+
   _generateMarkup() {
     return `<figure class="recipe__fig">
       <img src="${this._data.image}" alt="${
@@ -31,16 +40,22 @@ class RecipeView extends View {
         <svg class="recipe__info-icon">
           <use href="${icons}#icon-users"></use>
         </svg>
-        <span class="recipe__info-data recipe__info-data--people">4</span>
+        <span class="recipe__info-data recipe__info-data--people">${
+          this._data.servings
+        }</span>
         <span class="recipe__info-text">servings</span>
   
         <div class="recipe__info-buttons">
-          <button class="btn--tiny btn--increase-servings">
+          <button class="btn--tiny btn--update-servings" data-update-to="${
+            this._data.servings - 1
+          }">
             <svg>
               <use href="${icons}#icon-minus-circle"></use>
             </svg>
           </button>
-          <button class="btn--tiny btn--increase-servings">
+          <button class="btn--tiny btn--update-servings" data-update-to="${
+            this._data.servings + 1
+          }">
             <svg>
               <use href="${icons}#icon-plus-circle"></use>
             </svg>
