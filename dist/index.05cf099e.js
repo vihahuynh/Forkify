@@ -478,6 +478,8 @@ const controlRecipes = async ()=>{
         const id = window.location.hash.slice(1);
         if (!id) return;
         _recipeViewDefault.default.renderSpinner();
+        // 0) update Active class
+        _resultsViewDefault.default.update(_model.getSearchResultsPage());
         // 1) Load recipe
         await _model.loadRecipe(id);
         const { recipe  } = _model.state;
@@ -505,7 +507,7 @@ const controlPagination = (goToPage)=>{
 };
 const controlUpdateServings = (newServings)=>{
     _model.updateServings(newServings);
-    _recipeViewDefault.default.render(_model.state.recipe);
+    _recipeViewDefault.default.update(_model.state.recipe);
 };
 const init = ()=>{
     _recipeViewDefault.default.addHandlerRender(controlRecipes);
@@ -14116,6 +14118,26 @@ class View {
         this._clear();
         this._parentElement.insertAdjacentHTML('afterbegin', markup);
     }
+    update(data1) {
+        if (!data1 || Array.isArray(data1) && data1.length === 0) {
+            this.renderError();
+            return;
+        }
+        this._data = data1;
+        const newMarkup = this._generateMarkup();
+        const newDOM = document.createRange().createContextualFragment(newMarkup);
+        const newElements = Array.from(newDOM.querySelectorAll('*'));
+        const curElements = Array.from(this._parentElement.querySelectorAll('*'));
+        newElements.forEach((newEl, i)=>{
+            const curEl = curElements[i];
+            // update text
+            if (!newEl.isEqualNode(curEl) && newEl.firstChild?.nodeValue.trim() !== '') curEl.textContent = newEl.textContent;
+            //update attributes
+            if (!newEl.isEqualNode(curEl)) Array.from(newEl.attributes).forEach((attr)=>{
+                curEl.setAttribute(attr.name, attr.value);
+            });
+        });
+    }
     renderSpinner() {
         const spinner = `
     <div class="spinner">
@@ -14200,9 +14222,10 @@ class ResultsView extends _viewDefault.default {
     _errorMessage = 'No recipes found!';
     _generateMarkup() {
         return this._data.map((rec)=>{
+            const id = window.location.hash.slice(1);
             return `
           <li class="preview">
-            <a class="preview__link" href="#${rec.id}">
+            <a class="preview__link ${id === rec.id ? 'preview__link--active' : ''}" href="#${rec.id}">
               <figure class="preview__fig">
                 <img src="${rec.image}" alt="${rec.title}" />
               </figure>
