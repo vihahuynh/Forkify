@@ -60,7 +60,8 @@ class View {
     this._parentElement.insertAdjacentHTML('afterbegin', spinner);
   }
 
-  renderError() {
+  renderError(message = this._errorMessage) {
+    console.log(message);
     const markup = `
           <div class="error">
             <div>
@@ -68,7 +69,7 @@ class View {
                 <use href="${icons}#icon-alert-triangle"></use>
               </svg>
             </div>
-            <p>${this._errorMessage}</p>
+            <p>${message}</p>
           </div>
           `;
     this._clear();

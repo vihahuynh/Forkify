@@ -523,8 +523,12 @@ const controlUpdateBookMark = ()=>{
 const controlBookmarks = ()=>{
     _bookmarksViewDefault.default.render(_model.state.bookmarks);
 };
-const controlAddRecipe = (newRecipe)=>{
-    console.log(newRecipe);
+const controlAddRecipe = async (newRecipe)=>{
+    try {
+        await _model.uploadRecipe(newRecipe);
+    } catch (err) {
+        _addRecipeViewDefault.default.renderError(err.message);
+    }
 };
 const init = ()=>{
     _bookmarksViewDefault.default.addHandlerRender(controlBookmarks);
@@ -13597,6 +13601,8 @@ parcelHelpers.export(exports, "addBookMark", ()=>addBookMark
 );
 parcelHelpers.export(exports, "deleteBookMark", ()=>deleteBookMark
 );
+parcelHelpers.export(exports, "uploadRecipe", ()=>uploadRecipe
+);
 var _config = require("./config");
 var _helpers = require("./helpers");
 const state = {
@@ -13675,6 +13681,35 @@ const deleteBookMark = (id)=>{
     );
     state.recipe.bookmarked = false;
     persistBookmark();
+};
+const uploadRecipe = async (newRecipe)=>{
+    try {
+        const ingredients = Object.entries(newRecipe).filter((ing)=>ing[0].includes('ingredient') && ing[1].trim()
+        ).map((ing)=>{
+            const ingArr = ing[1].split(',');
+            if (ingArr.length !== 3) throw new Error('Wrong ingredient format. Please use the correct format!');
+            const quantity = ingArr[0].trim();
+            const unit = ingArr[1].trim();
+            const description = ingArr[2].trim();
+            return {
+                quantity: quantity ? +quantity : null,
+                unit: unit,
+                description: description
+            };
+        });
+        const recipe = {
+            title: newRecipe.title,
+            publisher: newRecipe.publisher,
+            source_url: newRecipe.sourceUrl,
+            image_url: newRecipe.image,
+            servings: +newRecipe.servings,
+            cooking_time: +newRecipe.cookingTime,
+            ingredients: ingredients
+        };
+        console.log(recipe);
+    } catch (err) {
+        throw err;
+    }
 };
 const init = ()=>{
     const storage = localStorage.getItem('bookmarks');
@@ -14206,7 +14241,8 @@ class View {
         this._clear();
         this._parentElement.insertAdjacentHTML('afterbegin', spinner);
     }
-    renderError() {
+    renderError(message = this._errorMessage) {
+        console.log(message);
         const markup = `
           <div class="error">
             <div>
@@ -14214,7 +14250,7 @@ class View {
                 <use href="${_iconsSvgDefault.default}#icon-alert-triangle"></use>
               </svg>
             </div>
-            <p>${this._errorMessage}</p>
+            <p>${message}</p>
           </div>
           `;
         this._clear();
@@ -14376,36 +14412,26 @@ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _view = require("./View");
 var _viewDefault = parcelHelpers.interopDefault(_view);
+var _previewView = require("./previewView");
+var _previewViewDefault = parcelHelpers.interopDefault(_previewView);
 class BookMarkView extends _viewDefault.default {
     _parentElement = document.querySelector('.bookmarks__list');
     _errorMessage = 'No bookmarks found!';
-    _generateMarkup() {
-        return this._data.map((rec)=>{
-            return this._generatePreview(rec);
-        }).join('');
+    addHandlerRender(handler) {
+        window.addEventListener('load', ()=>handler
+        );
     }
-    _generatePreview(rec) {
-        const id = window.location.hash.slice(1);
-        return `
-    <li class="preview">
-      <a class="preview__link ${id === rec.id ? 'preview__link--active' : ''}" href="#${rec.id}">
-        <figure class="preview__fig">
-          <img src="${rec.image}" alt="${rec.title}" />
-        </figure>
-        <div class="preview__data">
-          <h4 class="preview__title">${rec.title}</h4>
-          <p class="preview__publisher">${rec.publisher}</p>
-        </div>
-      </a>
-    </li>`;
+    _generateMarkup() {
+        return this._data.map((bookmark)=>_previewViewDefault.default.render(bookmark, false)
+        ).join('');
     }
 }
 exports.default = new BookMarkView();
 
-},{"./View":"9kPNj","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV"}],"h6x5X":[function(require,module,exports) {
+},{"./View":"9kPNj","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV","./previewView":"k51Qp"}],"h6x5X":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-var _view = require("./view");
+var _view = require("./View");
 var _viewDefault = parcelHelpers.interopDefault(_view);
 class AddRecipeView extends _viewDefault.default {
     _parentElement = document.querySelector('.upload');
@@ -14442,95 +14468,6 @@ class AddRecipeView extends _viewDefault.default {
 }
 exports.default = new AddRecipeView();
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV","./view":"lGNVB"}],"lGNVB":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-var _iconsSvg = require("url:../../img/icons.svg");
-var _iconsSvgDefault = parcelHelpers.interopDefault(_iconsSvg);
-class View {
-    _data;
-    render(data, render = true) {
-        if (!data || Array.isArray(data) && data.length === 0) {
-            this.renderError();
-            return;
-        }
-        this._data = data;
-        const markup = this._generateMarkup();
-        if (!render) return markup;
-        this._clear();
-        this._parentElement.insertAdjacentHTML('afterbegin', markup);
-    }
-    update(data1) {
-        if (!data1 || Array.isArray(data1) && data1.length === 0) {
-            this.renderError();
-            return;
-        }
-        this._data = data1;
-        const newMarkup = this._generateMarkup();
-        const newDOM = document.createRange().createContextualFragment(newMarkup);
-        const newElements = Array.from(newDOM.querySelectorAll('*'));
-        const curElements = Array.from(this._parentElement.querySelectorAll('*'));
-        newElements.forEach((newEl, i)=>{
-            const curEl = curElements[i];
-            // update text
-            if (!newEl.isEqualNode(curEl) && newEl.firstChild?.nodeValue.trim() !== '') curEl.textContent = newEl.textContent;
-            //update attributes
-            if (!newEl.isEqualNode(curEl)) Array.from(newEl.attributes).forEach((attr)=>{
-                curEl.setAttribute(attr.name, attr.value);
-            });
-        });
-    }
-    renderSpinner() {
-        const spinner = `
-    <div class="spinner">
-      <svg>
-        <use href="${_iconsSvgDefault.default}#icon-loader"></use>
-      </svg>
-    </div>`;
-        this._clear();
-        this._parentElement.insertAdjacentHTML('afterbegin', spinner);
-    }
-    renderError() {
-        const markup = `
-          <div class="error">
-            <div>
-              <svg>
-                <use href="${_iconsSvgDefault.default}#icon-alert-triangle"></use>
-              </svg>
-            </div>
-            <p>${this._errorMessage}</p>
-          </div>
-          `;
-        this._clear();
-        this._parentElement.insertAdjacentHTML('afterbegin', markup);
-    }
-    renderMessage() {
-        const markup = `
-          <div class="message">
-            <div>
-              <svg>
-                <use href="${_iconsSvgDefault.default}#icon-smile"></use>
-              </svg>
-            </div>
-            <p>${this._message}</p>
-          </div>
-          `;
-        this._clear();
-        this._parentElement.insertAdjacentHTML('afterbegin', markup);
-    }
-    _clear() {
-        this._parentElement.innerHTML = '';
-    }
-    addHandlerRender(handler) {
-        [
-            'hashchange',
-            'load'
-        ].forEach((event)=>window.addEventListener(event, handler)
-        );
-    }
-}
-exports.default = View;
-
-},{"url:../../img/icons.svg":"5jwFy","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV"}]},["kS06O","lA0Es"], "lA0Es", "parcelRequire3a11")
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV","./View":"9kPNj"}]},["kS06O","lA0Es"], "lA0Es", "parcelRequire3a11")
 
 //# sourceMappingURL=index.05cf099e.js.map

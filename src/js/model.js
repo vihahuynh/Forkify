@@ -92,6 +92,41 @@ export const deleteBookMark = id => {
   persistBookmark();
 };
 
+export const uploadRecipe = async newRecipe => {
+  try {
+    const ingredients = Object.entries(newRecipe)
+      .filter(ing => ing[0].includes('ingredient') && ing[1].trim())
+      .map(ing => {
+        const ingArr = ing[1].split(',');
+        if (ingArr.length !== 3)
+          throw new Error(
+            'Wrong ingredient format. Please use the correct format!'
+          );
+        const quantity = ingArr[0].trim();
+        const unit = ingArr[1].trim();
+        const description = ingArr[2].trim();
+        return {
+          quantity: quantity ? +quantity : null,
+          unit: unit,
+          description: description,
+        };
+      });
+
+    const recipe = {
+      title: newRecipe.title,
+      publisher: newRecipe.publisher,
+      source_url: newRecipe.sourceUrl,
+      image_url: newRecipe.image,
+      servings: +newRecipe.servings,
+      cooking_time: +newRecipe.cookingTime,
+      ingredients: ingredients,
+    };
+    console.log(recipe);
+  } catch (err) {
+    throw err;
+  }
+};
+
 const init = () => {
   const storage = localStorage.getItem('bookmarks');
   if (storage) state.bookmarks = JSON.parse(storage);
