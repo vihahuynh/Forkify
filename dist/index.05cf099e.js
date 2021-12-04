@@ -473,6 +473,8 @@ var _paginationView = require("./view/paginationView");
 var _paginationViewDefault = parcelHelpers.interopDefault(_paginationView);
 var _bookmarksView = require("./view/bookmarksView");
 var _bookmarksViewDefault = parcelHelpers.interopDefault(_bookmarksView);
+var _addRecipeView = require("./view/addRecipeView");
+var _addRecipeViewDefault = parcelHelpers.interopDefault(_addRecipeView);
 // https://forkify-api.herokuapp.com/v2
 ///////////////////////////////////////
 const controlRecipes = async ()=>{
@@ -521,6 +523,9 @@ const controlUpdateBookMark = ()=>{
 const controlBookmarks = ()=>{
     _bookmarksViewDefault.default.render(_model.state.bookmarks);
 };
+const controlAddRecipe = (newRecipe)=>{
+    console.log(newRecipe);
+};
 const init = ()=>{
     _bookmarksViewDefault.default.addHandlerRender(controlBookmarks);
     _recipeViewDefault.default.addHandlerRender(controlRecipes);
@@ -528,10 +533,11 @@ const init = ()=>{
     _recipeViewDefault.default.addHandlerUpdateBookMark(controlUpdateBookMark);
     _searchViewDefault.default.addHandlerSearch(controlSearch);
     _paginationViewDefault.default.addHandlerClick(controlPagination);
+    _addRecipeViewDefault.default.addHandlerUpload(controlAddRecipe);
 };
 init();
 
-},{"core-js/stable":"95FYz","regenerator-runtime/runtime":"1EBPE","./model":"1pVJj","./view/recipeView":"qcgKQ","./view/searchView":"1ShPd","./view/resultsView":"1KAoX","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV","./view/paginationView":"9Ia8B","./view/bookmarksView":"9TVaw"}],"95FYz":[function(require,module,exports) {
+},{"core-js/stable":"95FYz","regenerator-runtime/runtime":"1EBPE","./model":"1pVJj","./view/recipeView":"qcgKQ","./view/searchView":"1ShPd","./view/resultsView":"1KAoX","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV","./view/paginationView":"9Ia8B","./view/bookmarksView":"9TVaw","./view/addRecipeView":"h6x5X"}],"95FYz":[function(require,module,exports) {
 require('../modules/es.symbol');
 require('../modules/es.symbol.description');
 require('../modules/es.symbol.async-iterator');
@@ -14396,6 +14402,135 @@ class BookMarkView extends _viewDefault.default {
 }
 exports.default = new BookMarkView();
 
-},{"./View":"9kPNj","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV"}]},["kS06O","lA0Es"], "lA0Es", "parcelRequire3a11")
+},{"./View":"9kPNj","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV"}],"h6x5X":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _view = require("./view");
+var _viewDefault = parcelHelpers.interopDefault(_view);
+class AddRecipeView extends _viewDefault.default {
+    _parentElement = document.querySelector('.upload');
+    _window = document.querySelector('.add-recipe-window');
+    _overlay = document.querySelector('.overlay');
+    _btnOpen = document.querySelector('.nav__btn--add-recipe');
+    _btnClose = document.querySelector('.btn--close-modal');
+    constructor(){
+        super();
+        this._addHandlerHideWindow();
+        this._addHandlerShowWindow();
+    }
+    _toggleHidden() {
+        this._window.classList.toggle('hidden');
+        this._overlay.classList.toggle('hidden');
+    }
+    _addHandlerShowWindow() {
+        this._btnOpen.addEventListener('click', this._toggleHidden.bind(this));
+    }
+    _addHandlerHideWindow() {
+        this._btnClose.addEventListener('click', this._toggleHidden.bind(this));
+        this._overlay.addEventListener('click', this._toggleHidden.bind(this));
+    }
+    addHandlerUpload(handler) {
+        this._parentElement.addEventListener('submit', (e)=>{
+            e.preventDefault();
+            const dataArr = [
+                ...new FormData(this._parentElement)
+            ];
+            const data = Object.fromEntries(dataArr);
+            handler(data);
+        });
+    }
+}
+exports.default = new AddRecipeView();
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV","./view":"lGNVB"}],"lGNVB":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _iconsSvg = require("url:../../img/icons.svg");
+var _iconsSvgDefault = parcelHelpers.interopDefault(_iconsSvg);
+class View {
+    _data;
+    render(data, render = true) {
+        if (!data || Array.isArray(data) && data.length === 0) {
+            this.renderError();
+            return;
+        }
+        this._data = data;
+        const markup = this._generateMarkup();
+        if (!render) return markup;
+        this._clear();
+        this._parentElement.insertAdjacentHTML('afterbegin', markup);
+    }
+    update(data1) {
+        if (!data1 || Array.isArray(data1) && data1.length === 0) {
+            this.renderError();
+            return;
+        }
+        this._data = data1;
+        const newMarkup = this._generateMarkup();
+        const newDOM = document.createRange().createContextualFragment(newMarkup);
+        const newElements = Array.from(newDOM.querySelectorAll('*'));
+        const curElements = Array.from(this._parentElement.querySelectorAll('*'));
+        newElements.forEach((newEl, i)=>{
+            const curEl = curElements[i];
+            // update text
+            if (!newEl.isEqualNode(curEl) && newEl.firstChild?.nodeValue.trim() !== '') curEl.textContent = newEl.textContent;
+            //update attributes
+            if (!newEl.isEqualNode(curEl)) Array.from(newEl.attributes).forEach((attr)=>{
+                curEl.setAttribute(attr.name, attr.value);
+            });
+        });
+    }
+    renderSpinner() {
+        const spinner = `
+    <div class="spinner">
+      <svg>
+        <use href="${_iconsSvgDefault.default}#icon-loader"></use>
+      </svg>
+    </div>`;
+        this._clear();
+        this._parentElement.insertAdjacentHTML('afterbegin', spinner);
+    }
+    renderError() {
+        const markup = `
+          <div class="error">
+            <div>
+              <svg>
+                <use href="${_iconsSvgDefault.default}#icon-alert-triangle"></use>
+              </svg>
+            </div>
+            <p>${this._errorMessage}</p>
+          </div>
+          `;
+        this._clear();
+        this._parentElement.insertAdjacentHTML('afterbegin', markup);
+    }
+    renderMessage() {
+        const markup = `
+          <div class="message">
+            <div>
+              <svg>
+                <use href="${_iconsSvgDefault.default}#icon-smile"></use>
+              </svg>
+            </div>
+            <p>${this._message}</p>
+          </div>
+          `;
+        this._clear();
+        this._parentElement.insertAdjacentHTML('afterbegin', markup);
+    }
+    _clear() {
+        this._parentElement.innerHTML = '';
+    }
+    addHandlerRender(handler) {
+        [
+            'hashchange',
+            'load'
+        ].forEach((event)=>window.addEventListener(event, handler)
+        );
+    }
+}
+exports.default = View;
+
+},{"url:../../img/icons.svg":"5jwFy","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV"}]},["kS06O","lA0Es"], "lA0Es", "parcelRequire3a11")
 
 //# sourceMappingURL=index.05cf099e.js.map
