@@ -1,19 +1,20 @@
-import View from './View';
-import PreviewView from './previewView';
+import View from './View.js';
+import previewView from './previewView.js';
 
-class BookMarkView extends View {
+class BookmarksView extends View {
   _parentElement = document.querySelector('.bookmarks__list');
-  _errorMessage = 'No bookmarks found!';
+  _errorMessage = 'No bookmarks yet. Find a nice recipe and bookmark it ;)';
+  _message = '';
 
   addHandlerRender(handler) {
-    window.addEventListener('load', () => handler);
+    window.addEventListener('load', handler);
   }
 
   _generateMarkup() {
     return this._data
-      .map(bookmark => PreviewView.render(bookmark, false))
+      .map(bookmark => previewView.render(bookmark, false))
       .join('');
   }
 }
 
-export default new BookMarkView();
+export default new BookmarksView();
